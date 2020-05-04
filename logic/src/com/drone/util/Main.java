@@ -54,7 +54,7 @@ public class Main {
         for (int i = 0; i < lossrt.size(); i++) {
             lossrt.get(i).setFrame(i+1);
             if (i < (lossrt.size() - 1)) {
-                lossrt.get(i).setEndTime(lossrt.get(i+1).getStartTime());
+                lossrt.get(i).setEndTime(lossrt.get(i+1).getStartTime() - 1);
             } else {
                 lossrt.get(i).setEndTime(lossrt.get(i).getStartTime() + 1000);
             }
