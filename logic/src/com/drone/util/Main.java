@@ -22,6 +22,7 @@ public class Main {
         final long TIMESTAMP = System.currentTimeMillis();
         final long DATA_STARTS = Long.parseLong(args[1]) * 1000;
         final long DATA_ENDS = Long.parseLong(args[2]) * 1000;
+        final double STRETCH_IN_MS = Double.parseDouble(args[3]);
         final String OUTPUT_CSV = PATH + "output.csv";
 
         // check for csv file
@@ -51,6 +52,7 @@ public class Main {
             lossrt.add(new SparkSrtFrame(d, headersToFilter));
         }
 
+        // set srt frame start and end times
         for (int i = 0; i < lossrt.size(); i++) {
             lossrt.get(i).setFrame(i+1);
             if (i < (lossrt.size() - 1)) {
@@ -58,7 +60,32 @@ public class Main {
             } else {
                 lossrt.get(i).setEndTime(lossrt.get(i).getStartTime() + 1000);
             }
+        }
 
+        // update start and end times if there's a stretch value (ms)
+        if (STRETCH_IN_MS > 0) {
+            double addToEachFrame = STRETCH_IN_MS / lossrt.size();
+            long frameLengthInMs = lossrt.get(10).getStartTime() - lossrt.get(9).getStartTime();
+            long framesPerSecond = 1000 / frameLengthInMs;
+            double msToAddPerSecond = addToEachFrame * framesPerSecond;
+            long addEveryNFrames = (long) msToAddPerSecond;
+            long msToAddEveryNFrames = framesPerSecond / addEveryNFrames;
+
+            // update all the start times
+            for (int i=1; i < lossrt.size(); i++) {
+                if ((i % addEveryNFrames) == 0) {
+                    lossrt.get(i).setStartTime(lossrt.get(i).getStartTime() + msToAddEveryNFrames);
+                    for (int j=i; j < (lossrt.size()-1); j++) {
+                        lossrt.get(j+1).setStartTime(lossrt.get(j).getStartTime() + frameLengthInMs);
+                    }
+                }
+            }
+
+            // update all the end times
+            for (int i=0; i < (lossrt.size()-1); i++) {
+                lossrt.get(i).setEndTime(lossrt.get(i+1).getStartTime() - 1);
+            }
+            lossrt.get(lossrt.size() - 1).setEndTime(lossrt.get(lossrt.size() - 1).getStartTime() + 1000);
         }
 
         // SRT write to output file

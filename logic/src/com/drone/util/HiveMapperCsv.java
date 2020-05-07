@@ -48,7 +48,11 @@ public class HiveMapperCsv extends SparkSrtFrame implements CSVWriter {
             bD = bD / 1000;
             eD = eD / 1000;
             String bS = Double.toString(bD);
+            String t[] = bS.split("\\.");
+            bS = t[0] + "." + padZerosToEnd(3, t[1]);
             String eS = Double.toString(eD);
+            String u[] = eS.split("\\.");
+            eS = u[0] + "." + padZerosToEnd(3, u[1]);
 
             r.add(new String[]{
                     h.getData().get("GPS").get(0).getValue(),
@@ -60,6 +64,17 @@ public class HiveMapperCsv extends SparkSrtFrame implements CSVWriter {
             });
         }
 
+        return r;
+    }
+
+    private static String padZerosToEnd(int totalNumber, String s) {
+        String r = s;
+        if (r.length() < totalNumber) {
+            int loops = totalNumber - r.length();
+            for (int i = 0; i < loops; i++) {
+                r = r + "0";
+            }
+        }
         return r;
     }
 }
